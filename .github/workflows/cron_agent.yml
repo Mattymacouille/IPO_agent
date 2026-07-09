@@ -1,0 +1,40 @@
+name: Run IPO Agent Daily
+
+on:
+  schedule:
+    # S'exécute chaque jour à 06:00 UTC (7h ou 8h en France selon l'heure d'été/hiver)
+    - cron: '0 6 * * *'
+  workflow_dispatch: # Permet aussi de lancer le script manuellement depuis l'interface GitHub
+
+jobs:
+  run-agent:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout du code
+      uses: actions/checkout@v4
+
+    - name: Installer Python
+      uses: actions/setup-python@v5
+      with:
+        python-python: '3.11'
+
+    - name: Installer les dépendances
+      run: |
+        python -m pip install --upgrade pip
+        pip install requests html2text anthropic python-dotenv
+
+    - name: Executer l'Agent IA
+      env:
+        # On lie les variables du code aux secrets sécurisés de GitHub
+        FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY }}
+        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      run: python main.py
+
+    - name: Sauvegarder la mémoire (analysed_ipos.txt)
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git add analysed_ipos.txt
+        # On commit le fichier de mémoire uniquement s'il y a eu des changements
+        git diff --quiet && git diff --staged --quiet || (git commit -m "🤖 Sauvegarde mémoire agent [skip ci]" && git push)

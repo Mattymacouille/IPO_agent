@@ -1,0 +1,38 @@
+# --- SÉCURITÉ (À NE JAMAIS SUPPRIMER) ---
+# Fichiers de configuration contenant vos clés d'API locales
+.env
+.env.local
+*.env
+
+# --- PYTHON BOILERPLATE ---
+# Cache et fichiers compilés
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Environnements virtuels locaux (indispensable)
+.venv/
+venv/
+ENV/
+env/
+
+# Distribution / Packaging
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+*.egg-info/
+*.egg
+
+# --- ÉDITEURS DE CODE ---
+# Configuration VS Code
+.vscode/
+# Configuration PyCharm / IntelliJ
+.idea/
+
+# --- SYSTÈME ---
+.DS_Store
+Thumbs.db
