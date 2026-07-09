@@ -126,8 +126,9 @@ def run_ipo_agent():
             name = ipo.get("name", "Inconnu")
             ticker = ipo.get("symbol", "N/A").upper()
             exchange = ipo.get("exchange", "Inconnu")
+            date_listing = ipo.get("date", None) 
             
-            print(f"ÉVALUATION : {name} ({ticker}) | {exchange}")
+            print(f"ÉVALUATION : {name} ({ticker}) | {exchange} | Date : {date_listing}")
             
             if already_analyzed(ticker):
                 print(f"Déjà analysé par le passé ({ticker}). On passe à la suite.")
@@ -146,7 +147,7 @@ def run_ipo_agent():
                         print("="*52 + "\n")
                         
                         # --- DÉBUT DU PARSING DES NOTES ---
-# --- PARSING DES BALISES XML + INVERSION POUR LE RISQUE ---
+                        # --- PARSING DES BALISES XML + INVERSION POUR LE RISQUE ---
                         risk_short = None
                         risk_long = None
 
@@ -183,6 +184,7 @@ def run_ipo_agent():
                             ai_report=clean_report,
                             risk_short=risk_short,
                             risk_long=risk_long,
+                            ipo_date=date_listing,
                         )
                     else:
                         print("Document S-1 introuvable pour le moment.")
