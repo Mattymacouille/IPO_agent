@@ -15,7 +15,7 @@ const highRiskCountEl = document.getElementById('highRiskCount');
 async function fetchAndDisplayIPOs() {
     try {
         const { data: ipos, error } = await supabaseClient
-            .from('ipos') // <-- Vérifie bien que c'est le nom exact de ta table
+            .from('ipo_analyses') // <-- Vérifie bien que c'est le nom exact de ta table
             .select('*')
             .order('analyzed_at', { ascending: false });
 
