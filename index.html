@@ -366,7 +366,7 @@ function card(d){
     <!-- BOUTON DE DEPLIEMENT DU RAPPORT RAPIDE -->
     <div class="pt-1">
       <button onclick="toggleReport(this)" class="w-full text-center font-display text-[11px] font-semibold tracking-wide uppercase py-2 rounded-lg bg-[var(--surface-2)] hover:bg-[var(--line)] text-[var(--indigo)] transition-all cursor-pointer">
-        👁️ Lire le rapport complet
+        Lire le rapport complet
       </button>
       <div class="report-content font-mono text-[11px] text-[var(--text-dim)] leading-relaxed mt-2 bg-[#0E1524] rounded-xl p-0 transition-all border border-transparent">
         <div class="p-3 max-h-64 overflow-y-auto">
@@ -389,10 +389,10 @@ window.toggleReport = function(btn) {
   const content = btn.nextElementSibling;
   content.classList.toggle('open');
   if(content.classList.contains('open')) {
-    btn.textContent = "❌ Fermer le rapport";
+    btn.textContent = "Fermer le rapport";
     content.classList.add('border-[var(--line)]');
   } else {
-    btn.textContent = "👁️ Lire le rapport complet";
+    btn.textContent = "Lire le rapport complet";
     content.classList.remove('border-[var(--line)]');
   }
 }
