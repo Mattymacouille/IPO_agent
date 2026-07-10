@@ -26,7 +26,7 @@ jobs:
         # On lie les variables du code aux secrets sécurisés de GitHub
         FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY }}
         ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        SUPABASE_URL: ${{ secrets.SUPABASE_URL }}   # Ajouté pour l'envoi vers ipo_analyses
+        SUPABASE_URL: "https://pothhxmdapkoctoygtcs.supabase.co"   # Ajouté pour l'envoi vers ipo_analyses
         SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}   # Ajouté pour l'envoi vers ipo_analyses
       run: python main.py
 
