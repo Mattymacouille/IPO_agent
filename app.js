@@ -155,7 +155,7 @@ function renderIPOs() {
 async function fetchAndDisplayIPOs() {
     try {
         const { data: ipos, error } = await supabaseClient
-            .from('ipos')
+            .from('ipo_analyses')
             .select('*')
             .order('analyzed_at', { ascending: false });
 
