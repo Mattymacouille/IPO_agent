@@ -14,18 +14,20 @@ jobs:
     - name: Installer Python
       uses: actions/setup-python@v5
       with:
-        python-python: '3.11'
+        python-version: '3.11' # Corrigé : c'est bien python-version et non python-python
 
     - name: Installer les dépendances
       run: |
         python -m pip install --upgrade pip
-        pip install requests html2text anthropic python-dotenv
+        pip install requests html2text anthropic python-dotenv supabase postgrest
 
     - name: Executer l'Agent IA
       env:
         # On lie les variables du code aux secrets sécurisés de GitHub
         FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY }}
         ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        SUPABASE_URL: ${{ secrets.SUPABASE_URL }}   # Ajouté pour l'envoi vers ipo_analyses
+        SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}   # Ajouté pour l'envoi vers ipo_analyses
       run: python main.py
 
     - name: Sauvegarder la mémoire (analysed_ipos.txt)
