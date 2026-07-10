@@ -1,5 +1,6 @@
 import os
 from supabase import create_client, Client
+from datetime import date
 
 _client: Client | None = None
 
@@ -28,6 +29,7 @@ def save_analysis(
     ai_report: str,
     risk_short: int | None,
     risk_long: int | None,
+    ipo_date: str | date | None = None,
 ) -> None:
     """Remplace l'écriture dans analysed_ipos.txt"""
     client = get_client()
@@ -39,4 +41,5 @@ def save_analysis(
         "ai_report": ai_report,
         "risk_score_short_term": risk_short,
         "risk_score_long_term": risk_long,
+        "ipo_date": ipo_date,
     }).execute()

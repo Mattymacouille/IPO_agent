@@ -152,8 +152,8 @@ def run_ipo_agent():
                         risk_long = None
 
                         # On cherche les chiffres cachés entre les balises <score_ct> et <score_lt>
-                        match_ct = re.search(r"<score_ct>\s*(\d+)\s*</score_ct>", rapport)
-                        match_lt = re.search(r"<score_lt>\s*(\d+)\s*</score_lt>", rapport)
+                        match_ct = re.search(r'(?:<score_ct>|\[SCORE_CT:\s*)(\d+)', rapport, re.IGNORECASE)
+                        match_lt = re.search(r'(?:<score_lt>|\[SCORE_LT:\s*)(\d+)', rapport, re.IGNORECASE)
 
                         if match_ct:
                             # On convertit le score et on l'inverse pour obtenir le RISQUE (10 - score)
