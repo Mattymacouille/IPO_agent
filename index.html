@@ -1,67 +1,439 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IPO Agent Dashboard</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#0f172a">
-    <link rel="apple-touch-icon" href="icon-192.png">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IPO Agent — Radar de marché</title>
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0A0F1D">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0A0F1D;
+    --surface:#121A2B;
+    --surface-2:#17213A;
+    --line:#212D4A;
+    --text:#E7ECF5;
+    --text-dim:#8A97B3;
+    --emerald:#2DD4A7;
+    --emerald-dim:rgba(45,212,167,.12);
+    --amber:#F5A623;
+    --amber-dim:rgba(245,166,35,.12);
+    --indigo:#8B8FFA;
+    --indigo-dim:rgba(139,143,250,.12);
+    --rose:#FB6B85;
+    --rose-dim:rgba(251,107,133,.12);
+  }
+  *{box-sizing:border-box}
+  body{
+    background:
+      radial-gradient(1200px 500px at 15% -10%, rgba(139,143,250,.08), transparent),
+      radial-gradient(900px 400px at 100% 0%, rgba(45,212,167,.06), transparent),
+      var(--ink);
+    color:var(--text);
+    font-family:'Inter',system-ui,sans-serif;
+  }
+  .font-display{font-family:'Space Grotesk',system-ui,sans-serif}
+  .font-mono{font-family:'JetBrains Mono',ui-monospace,monospace}
+
+  /* Ticker tape */
+  .ticker-track{
+    display:flex;
+    width:max-content;
+    animation:scroll-left 42s linear infinite;
+  }
+  .ticker-track:hover{animation-play-state:paused}
+  @keyframes scroll-left{
+    from{transform:translateX(0)}
+    to{transform:translateX(-50%)}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .ticker-track{animation:none}
+  }
+
+  .status-dot{
+    display:inline-block;width:6px;height:6px;border-radius:999px;
+    box-shadow:0 0 0 3px currentColor / 20%;
+  }
+  .pulse-dot{
+    position:relative;
+  }
+  .pulse-dot::after{
+    content:'';position:absolute;inset:-4px;border-radius:999px;
+    background:currentColor;opacity:.35;
+    animation:pulse-ring 2s cubic-bezier(0.4,0,0.6,1) infinite;
+  }
+  @keyframes pulse-ring{
+    0%{transform:scale(0.6);opacity:.5}
+    70%{transform:scale(1.8);opacity:0}
+    100%{transform:scale(1.8);opacity:0}
+  }
+
+  .card{
+    background:linear-gradient(180deg, var(--surface), var(--surface) 60%, var(--surface-2));
+    border:1px solid var(--line);
+    transition:border-color .2s ease, transform .2s ease;
+  }
+  .card:hover{
+    border-color:rgba(139,143,250,.4);
+    transform:translateY(-2px);
+  }
+
+  .risk-track{background:var(--surface-2);border:1px solid var(--line)}
+  .tab-btn{transition:all .15s ease}
+  .chip{transition:all .15s ease}
+  ::-webkit-scrollbar{height:8px;width:8px}
+  ::-webkit-scrollbar-track{background:var(--surface)}
+  ::-webkit-scrollbar-thumb{background:var(--line);border-radius:999px}
+  .focus-ring:focus-visible{outline:2px solid var(--indigo);outline-offset:2px}
+</style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen font-sans">
+<body class="min-h-screen">
 
-    <header class="border-b border-slate-800 bg-slate-950 p-4 sticky top-0 z-50">
-        <div class="max-w-6xl mx-auto flex justify-between items-center">
-            <h1 class="text-xl font-bold tracking-tight text-emerald-400 flex items-center gap-2">
-                🤖 IPO Agent <span class="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">PWA</span>
-            </h1>
-            <button id="installBtn" class="hidden bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-sm font-semibold px-3 py-1.5 rounded-lg transition-all cursor-pointer">
-                Installer l'App
-            </button>
+  <header class="border-b border-[var(--line)] bg-[#0A0F1D]/90 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 md:px-6 py-3 flex justify-between items-center gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-[var(--emerald-dim)] border border-[var(--emerald)]/30 flex items-center justify-center font-mono text-[var(--emerald)] text-sm font-bold">Σ</div>
+        <div>
+          <h1 class="font-display font-bold tracking-tight text-[15px] leading-none">IPO AGENT</h1>
+          <p class="text-[10px] text-[var(--text-dim)] tracking-wider uppercase mt-0.5 flex items-center gap-1.5">
+            <span class="pulse-dot text-[var(--emerald)]"><span class="status-dot bg-[var(--emerald)]"></span></span>
+            Marchés surveillés en direct
+          </p>
         </div>
-    </header>
+      </div>
+      <button id="installBtn" class="hidden bg-[var(--emerald)] hover:brightness-110 text-[#06110D] text-xs font-semibold font-display px-3.5 py-2 rounded-lg transition-all cursor-pointer focus-ring">
+        Installer l'app
+      </button>
+    </div>
 
-    <main class="max-w-6xl mx-auto p-4 space-y-6">
-        
-        <div class="grid grid-cols-2 gap-4">
-            <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl">
-                <p class="text-xs text-slate-400 uppercase tracking-wider font-bold">Compteur Total</p>
-                <p id="totalIpos" class="text-2xl font-bold text-slate-200 mt-1">0</p>
-            </div>
-            <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl">
-                <p class="text-xs text-slate-400 uppercase tracking-wider font-bold">Alerte Risque Max (9+/10)</p>
-                <p id="highRiskCount" class="text-2xl font-bold text-rose-500 mt-1">0</p>
-            </div>
+    <div class="border-t border-[var(--line)] overflow-hidden py-2 bg-[var(--surface)]/60">
+      <div class="ticker-track font-mono text-xs" id="tickerTape">
+        <span class="px-5 text-[var(--text-dim)]">Synchronisation du ruban en cours...</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto p-4 md:p-6 space-y-8">
+
+    <section class="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div class="card rounded-xl p-4 relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-full h-0.5 bg-[var(--text-dim)]/40"></div>
+        <p class="text-[10px] text-[var(--text-dim)] uppercase tracking-wider font-semibold">Suivies au total</p>
+        <p id="statTotal" class="font-mono text-2xl md:text-3xl font-bold mt-1.5">00</p>
+      </div>
+      <div class="card rounded-xl p-4 relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-full h-0.5 bg-[var(--indigo)]"></div>
+        <p class="text-[10px] text-[var(--text-dim)] uppercase tracking-wider font-semibold">📋 À venir</p>
+        <p id="statAvenir" class="font-mono text-2xl md:text-3xl font-bold mt-1.5 text-[var(--indigo)]">00</p>
+      </div>
+      <div class="card rounded-xl p-4 relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-full h-0.5 bg-[var(--amber)]"></div>
+        <p class="text-[10px] text-[var(--text-dim)] uppercase tracking-wider font-semibold">⏳ En listing</p>
+        <p id="statListing" class="font-mono text-2xl md:text-3xl font-bold mt-1.5 text-[var(--amber)]">00</p>
+      </div>
+      <div class="card rounded-xl p-4 relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-full h-0.5 bg-[var(--rose)]"></div>
+        <p class="text-[10px] text-[var(--text-dim)] uppercase tracking-wider font-semibold">🔺 Risque max (8+/10)</p>
+        <p id="statRisk" class="font-mono text-2xl md:text-3xl font-bold mt-1.5 text-[var(--rose)]">00</p>
+      </div>
+    </section>
+
+    <section class="space-y-3">
+      <div class="flex flex-wrap gap-2">
+        <button data-tab="all" class="tab-btn px-4 py-2 text-xs md:text-sm font-display font-semibold rounded-lg bg-[var(--emerald)] text-[#06110D] cursor-pointer">
+          🌍 Toutes <span class="tab-count font-mono opacity-70">(0)</span>
+        </button>
+        <button data-tab="À venir" class="tab-btn px-4 py-2 text-xs md:text-sm font-display font-semibold rounded-lg bg-[var(--surface)] text-[var(--text-dim)] hover:text-[var(--text)] border border-[var(--line)] cursor-pointer">
+          📋 À venir <span class="tab-count font-mono opacity-70">(0)</span>
+        </button>
+        <button data-tab="En listing" class="tab-btn px-4 py-2 text-xs md:text-sm font-display font-semibold rounded-lg bg-[var(--surface)] text-[var(--text-dim)] hover:text-[var(--text)] border border-[var(--line)] cursor-pointer">
+          ⏳ En listing <span class="tab-count font-mono opacity-70">(0)</span>
+        </button>
+        <button data-tab="Récemment listée" class="tab-btn px-4 py-2 text-xs md:text-sm font-display font-semibold rounded-lg bg-[var(--surface)] text-[var(--text-dim)] hover:text-[var(--text)] border border-[var(--line)] cursor-pointer">
+          ✅ Récemment listées <span class="tab-count font-mono opacity-70">(0)</span>
+        </button>
+      </div>
+
+      <div class="flex flex-wrap gap-2 items-center">
+        <span class="text-[10px] text-[var(--text-dim)] uppercase tracking-wider font-semibold mr-1">Zone :</span>
+        <button data-region="all" class="chip region-chip px-3 py-1.5 rounded-full text-xs border border-[var(--indigo)] bg-[var(--indigo-dim)] text-[var(--indigo)] cursor-pointer font-medium">Toutes</button>
+        <button data-region="USA" class="chip region-chip px-3 py-1.5 rounded-full text-xs border border-[var(--line)] text-[var(--text-dim)] hover:text-[var(--text)] cursor-pointer font-medium">🇺🇸 États-Unis</button>
+        <button data-region="Europe" class="chip region-chip px-3 py-1.5 rounded-full text-xs border border-[var(--line)] text-[var(--text-dim)] hover:text-[var(--text)] cursor-pointer font-medium">🇪🇺 Europe</button>
+        <button data-region="Hong Kong" class="chip region-chip px-3 py-1.5 rounded-full text-xs border border-[var(--line)] text-[var(--text-dim)] hover:text-[var(--text)] cursor-pointer font-medium">🇭🇰 Hong Kong</button>
+      </div>
+    </section>
+
+    <section class="space-y-4">
+      <div class="flex items-center justify-between">
+        <h2 class="font-display text-sm font-semibold text-[var(--text-dim)] uppercase tracking-wider">Radar global</h2>
+        <select id="sortSelect" class="focus-ring bg-[var(--surface)] border border-[var(--line)] text-xs text-[var(--text-dim)] rounded-lg px-2.5 py-1.5 cursor-pointer">
+          <option value="date">Trier par date</option>
+          <option value="risk">Trier par risque max</option>
+        </select>
+      </div>
+      <div id="ipoContainer" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div id="loading" class="text-center py-16 text-[var(--text-dim)] col-span-full font-mono text-sm">
+          Connexion au cache de l'API Supabase — chargement...
         </div>
+      </div>
+    </section>
 
-        <div class="flex flex-wrap gap-2 border-b border-slate-800 pb-4">
-            <button id="tab-all" class="px-4 py-2 text-xs md:text-sm font-semibold rounded-lg bg-emerald-500 text-slate-950 shadow-lg cursor-pointer transition-all">
-                🌍 Toutes (0)
-            </button>
-            <button id="tab-avenir" class="px-4 py-2 text-xs md:text-sm font-semibold rounded-lg bg-slate-950 text-slate-400 hover:text-slate-200 border border-slate-800 cursor-pointer transition-all">
-                📋 À venir (0)
-            </button>
-            <button id="tab-cours" class="px-4 py-2 text-xs md:text-sm font-semibold rounded-lg bg-slate-950 text-slate-400 hover:text-slate-200 border border-slate-800 cursor-pointer transition-all">
-                ⏳ En listing (0)
-            </button>
-            <button id="tab-liste" class="px-4 py-2 text-xs md:text-sm font-semibold rounded-lg bg-slate-950 text-slate-400 hover:text-slate-200 border border-slate-800 cursor-pointer transition-all">
-                ✅ Cotées (0)
-            </button>
+    <footer class="text-center py-8 text-[10px] text-[var(--text-dim)] uppercase tracking-wider">
+      Agent IPO · Claude + Supabase + Finnhub/EDGAR/Euronext/HKEX
+    </footer>
+  </main>
+
+<script>
+// 1. INITIALISATION LIVE DE SUPABASE (Connexion directe à ton infrastructure)
+const SUPABASE_URL = "https://pothhxmdapkoctoygtcs.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBvdGhoeG1kYXBrb2N0b3lndGNzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1ODk3MzMsImV4cCI6MjA5OTE2NTczM30.m4hn6cFhwT38SUiCW8C8Ft5eNWI8IpBQ0OE8sCtHd28";
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// Configuration des correspondances UI pour les statuts réels renvoyés par ton main.py
+const STATUS_META = {
+  "À venir":            {label:"À venir",       color:"var(--indigo)",  bg:"var(--indigo-dim)",  icon:"📋"},
+  "En listing":         {label:"En listing",    color:"var(--amber)",   bg:"var(--amber-dim)",   icon:"⏳"},
+  "Récemment listée":   {label:"Cotée",         color:"var(--emerald)", bg:"var(--emerald-dim)", icon:"✅"},
+};
+
+let RAW_IPO_DATA = []; // Contiendra les vraies lignes issues de ta BDD
+let currentTab = "all";
+let currentRegion = "all";
+let currentSort = "date";
+
+// Fonction d'interfaçage automatique des drapeaux de pays
+function getCountryFlag(countryName) {
+  if (!countryName) return "🌐";
+  const c = countryName.toUpperCase();
+  if (c.includes("USA") || c.includes("ÉTATS") || c.includes("UNITED STATES")) return "🇺🇸";
+  if (c.includes("FRANCE") || c.includes("PARIS") || c.includes("EUROPE")) return "🇫🇷";
+  if (c.includes("HONG") || c.includes("HKEX")) return "🇭🇰";
+  if (c.includes("COREE") || c.includes("KOREA")) return "🇰🇷";
+  return "🌐";
+}
+
+function daysUntil(dateStr){
+  if (!dateStr) return "—";
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const target = new Date(dateStr);
+  const diff = Math.round((target - today) / 86400000);
+  return diff >= 0 ? `J-${diff}` : `J+${Math.abs(diff)}`;
+}
+
+function riskColor(score){
+  if(score >= 8) return "var(--rose)";
+  if(score >= 5) return "var(--amber)";
+  return "var(--emerald)";
+}
+
+// Récupération des données depuis la table active 'ipo_analyses'
+async function fetchRadarData() {
+  try {
+    const { data, error } = await supabase
+      .from('ipo_analyses')
+      .select('*')
+      .order('analyzed_at', { ascending: false });
+
+    if (error) throw error;
+
+    RAW_IPO_DATA = data || [];
+    
+    // Initialisation des composants graphiques
+    renderTicker();
+    renderStats();
+    applyFiltersAndRender();
+  } catch (err) {
+    console.error("Erreur de récupération Supabase:", err);
+    document.getElementById('ipoContainer').innerHTML = `
+      <div class="col-span-full text-center py-16 text-[var(--rose)] font-mono text-xs">
+        ❌ Erreur de chargement : ${err.message || err}
+      </div>`;
+  }
+}
+
+function renderTicker(){
+  if (RAW_IPO_DATA.length === 0) return;
+  // On duplique la liste pour assurer un effet de boucle fluide sans coupure
+  const items = [...RAW_IPO_DATA, ...RAW_IPO_DATA].map(d => {
+    const meta = STATUS_META[d.status] || {label: d.status, color:"var(--text-dim)"};
+    const flag = getCountryFlag(d.country);
+    return `<div class="flex items-center gap-2 px-5 whitespace-nowrap">
+      <span class="status-dot" style="background:${meta.color}"></span>
+      <span class="font-semibold text-[var(--text)]">${d.ticker}</span>
+      <span class="text-[var(--text-dim)]">${flag} ${d.market || 'US'}</span>
+      <span style="color:${meta.color}">${!d.price_range || d.price_range === '—' ? meta.label : d.price_range}</span>
+    </div>`;
+  }).join('<span class="text-[var(--line)]">/</span>');
+  document.getElementById('tickerTape').innerHTML = items;
+}
+
+function renderStats(){
+  document.getElementById('statTotal').textContent = String(RAW_IPO_DATA.length).padStart(2,'0');
+  document.getElementById('statAvenir').textContent = String(RAW_IPO_DATA.filter(d=>d.status==='À venir').length).padStart(2,'0');
+  document.getElementById('statListing').textContent = String(RAW_IPO_DATA.filter(d=>d.status==='En listing').length).padStart(2,'0');
+  document.getElementById('statRisk').textContent = String(RAW_IPO_DATA.filter(d=>d.risk_score_short_term >= 8 || d.risk_score_long_term >= 8).length).padStart(2,'0');
+
+  document.querySelectorAll('.tab-btn').forEach(btn=>{
+    const tab = btn.dataset.tab;
+    const count = tab==='all' ? RAW_IPO_DATA.length : RAW_IPO_DATA.filter(d=>d.status===tab).length;
+    btn.querySelector('.tab-count').textContent = `(${count})`;
+  });
+}
+
+function card(d){
+  const meta = STATUS_META[d.status] || {label: d.status, color:"var(--text-dim)", bg:"var(--surface-2)", icon:"📋"};
+  const dleft = d.ipo_date ? daysUntil(d.ipo_date) : "Non fixé";
+  const flag = getCountryFlag(d.country);
+  
+  // Utilisation préférentielle du risque court terme pour la jauge globale de risque
+  const activeRisk = d.risk_score_short_term || 5;
+
+  return `
+  <article class="card rounded-2xl p-4 flex flex-col gap-3">
+    <div class="flex items-start justify-between">
+      <div class="flex items-center gap-2.5">
+        <div class="w-10 h-10 rounded-lg flex items-center justify-center font-mono font-bold text-sm" style="background:${meta.bg};color:${meta.color}">
+          ${d.ticker ? d.ticker.slice(0,2) : 'IP'}
         </div>
-
-        <div class="space-y-4">
-            <h2 class="text-lg font-semibold text-slate-400">Radar Global des IPO</h2>
-            <div id="ipoContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div id="loading" class="text-center py-12 text-slate-500 col-span-full">
-                    Connexion à Supabase et chargement des données...
-                </div>
-            </div>
+        <div>
+          <p class="font-mono font-bold text-sm leading-none">${d.ticker}</p>
+          <p class="text-[10px] text-[var(--text-dim)] mt-1">${flag} ${d.market || 'US'}</p>
         </div>
+      </div>
+      <span class="text-[10px] font-semibold px-2 py-1 rounded-full whitespace-nowrap" style="background:${meta.bg};color:${meta.color}">
+        ${meta.icon} ${meta.label}
+      </span>
+    </div>
 
-    </main>
+    <div>
+      <h3 class="font-display font-semibold text-[15px] leading-snug">${d.company_name}</h3>
+      <p class="text-[11px] text-[var(--text-dim)] mt-0.5">Analyse IA générée</p>
+    </div>
 
-    <script src="app.js"></script>
+    <div class="grid grid-cols-3 gap-2 py-2 border-y border-[var(--line)]">
+      <div>
+        <p class="text-[9px] text-[var(--text-dim)] uppercase tracking-wide">Prix</p>
+        <p class="font-mono text-xs font-semibold mt-0.5 text-ellipsis overflow-hidden whitespace-nowrap">${d.price_range || '—'}</p>
+      </div>
+      <div>
+        <p class="text-[9px] text-[var(--text-dim)] uppercase tracking-wide">Valorisation</p>
+        <p class="font-mono text-xs font-semibold mt-0.5 text-ellipsis overflow-hidden whitespace-nowrap">${d.valuation || '—'}</p>
+      </div>
+      <div>
+        <p class="text-[9px] text-[var(--text-dim)] uppercase tracking-wide">Montant Visé</p>
+        <p class="font-mono text-xs font-semibold mt-0.5 text-ellipsis overflow-hidden whitespace-nowrap">${d.amount_raised || '—'}</p>
+      </div>
+    </div>
+
+    <div class="space-y-2 py-1">
+      <div class="flex justify-between items-center">
+        <p class="text-[9px] text-[var(--text-dim)] uppercase tracking-wide">Risque Court Terme</p>
+        <p class="font-mono text-xs font-bold" style="color:${riskColor(d.risk_score_short_term)}">${d.risk_score_short_term || 5}/10</p>
+      </div>
+      <div class="risk-track h-1 rounded-full overflow-hidden">
+        <div class="h-full rounded-full" style="width:${(d.risk_score_short_term || 5)*10}%;background:${riskColor(d.risk_score_short_term)}"></div>
+      </div>
+      
+      <div class="flex justify-between items-center">
+        <p class="text-[9px] text-[var(--text-dim)] uppercase tracking-wide">Risque Long Terme</p>
+        <p class="font-mono text-xs font-bold" style="color:${riskColor(d.risk_score_long_term)}">${d.risk_score_long_term || 5}/10</p>
+      </div>
+      <div class="risk-track h-1 rounded-full overflow-hidden">
+        <div class="h-full rounded-full" style="width:${(d.risk_score_long_term || 5)*10}%;background:${riskColor(d.risk_score_long_term)}"></div>
+      </div>
+    </div>
+
+    <div class="flex justify-between items-center pt-2 mt-auto border-t border-[var(--line)]/40">
+      <span class="text-[10px] text-[var(--text-dim)]">${d.ipo_date ? new Date(d.ipo_date).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'}) : 'Date à fixer'}</span>
+      <a href="${d.sec_filing_url || '#'}" target="_blank" class="font-mono text-[10px] font-bold px-2 py-1 rounded hover:opacity-80 transition-opacity bg-[var(--surface-2)] text-[var(--text)] border border-[var(--line)]">
+        Prospectus SEC ↗
+      </a>
+    </div>
+  </article>`;
+}
+
+function applyFiltersAndRender(){
+  let data = [...RAW_IPO_DATA];
+  
+  // Application du filtre d'onglets (Statut)
+  if(currentTab !== 'all') data = data.filter(d => d.status === currentTab);
+  
+  // Application du filtre de zone (Pays/Région)
+  if(currentRegion !== 'all') {
+    data = data.filter(d => {
+      const country = d.country ? d.country.toUpperCase() : '';
+      if (currentRegion === 'USA') return country.includes('USA') || country.includes('ÉTATS');
+      if (currentRegion === 'Europe') return country.includes('FRANCE') || country.includes('EUROPE');
+      if (currentRegion === 'Hong Kong') return country.includes('HONG') || country.includes('HK');
+      return true;
+    });
+  }
+
+  // Tri opérationnel
+  if(currentSort === 'date') {
+    data.sort((a,b) => {
+      if (!a.ipo_date) return 1;
+      if (!b.ipo_date) return -1;
+      return new Date(a.ipo_date) - new Date(b.ipo_date);
+    });
+  }
+  if(currentSort === 'risk') {
+    data.sort((a,b) => (b.risk_score_short_term || 0) - (a.risk_score_short_term || 0));
+  }
+
+  const container = document.getElementById('ipoContainer');
+  if(data.length === 0){
+    container.innerHTML = `<div class="col-span-full text-center py-16 text-[var(--text-dim)]">
+      <p class="font-display text-sm">Aucune analyse en base de données pour ces critères.</p>
+    </div>`;
+    return;
+  }
+  container.innerHTML = data.map(card).join('');
+}
+
+// Écouteurs d'événements pour les onglets de statut
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    currentTab = btn.dataset.tab;
+    document.querySelectorAll('.tab-btn').forEach(b=>{
+      b.classList.remove('bg-[var(--emerald)]','text-[#06110D]');
+      b.classList.add('bg-[var(--surface)]','text-[var(--text-dim)]','border','border-[var(--line)]');
+    });
+    btn.classList.add('bg-[var(--emerald)]','text-[#06110D]');
+    btn.classList.remove('bg-[var(--surface)]','text-[var(--text-dim)]','border','border-[var(--line)]');
+    applyFiltersAndRender();
+  });
+});
+
+// Écouteurs d'événements pour les puces géographiques
+document.querySelectorAll('.region-chip').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    currentRegion = btn.dataset.region;
+    document.querySelectorAll('.region-chip').forEach(b=>{
+      b.classList.remove('border-[var(--indigo)]','bg-[var(--indigo-dim)]','text-[var(--indigo)]');
+      b.classList.add('border-[var(--line)]','text-[var(--text-dim)]');
+    });
+    btn.classList.add('border-[var(--indigo)]','bg-[var(--indigo-dim)]','text-[var(--indigo)]');
+    btn.classList.remove('border-[var(--line)]','text-[var(--text-dim)]');
+    applyFiltersAndRender();
+  });
+});
+
+// Écouteur de tri personnalisé
+document.getElementById('sortSelect').addEventListener('change', (e)=>{
+  currentSort = e.target.value;
+  applyFiltersAndRender();
+});
+
+// Lancement de la synchronisation au chargement de la page
+fetchRadarData();
+</script>
 </body>
 </html>

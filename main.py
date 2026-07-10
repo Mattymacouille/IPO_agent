@@ -5,8 +5,8 @@ import html2text
 from dotenv import load_dotenv
 from anthropic import Anthropic
 from db import already_analyzed, save_analysis
-import re    # <-- AJOUTÉ pour le parsing regex
-import json  # <-- AJOUTÉ pour décoder le JSON
+import re    # Conforme pour le parsing regex
+import json  # Conforme pour décoder le JSON
 
 # Charger les variables d'environnement
 load_dotenv()
@@ -72,12 +72,23 @@ def analyze_document_with_claude(doc_url, company_name):
             "Tu analyses un document d'IPO pour détecter les failles, dettes et risques de gouvernance. "
             "Ignore le marketing. Reste factuel, froid et très critique. "
             "SOIS SYNTHÉTIQUE : va droit au but, limite-toi aux 3 ou 4 drapeaux rouges les plus destructeurs ou alors si t'estimes qu'ils sont importants donne les moi tous mais ne developpe pas. "
-            "Ton rapport complet ne doit pas dépasser 800 mots pour tenir entièrement dans la réponse."
-            )
-        
+            "Ton rapport complet ne doit pas dépasser 800 mots pour tenir entièrement dans la réponse.\n\n"
+            
+            "CONSIGNE TECHNIQUE IMPÉRATIVE :\n"
+            "Avant de commencer ton rapport, tu dois TOUJOURS inclure le bloc de métadonnées suivant tout en haut de ta réponse. "
+            "Remplis chaque balise avec les données trouvées dans le texte :\n"
+            "<meta_data>\n"
+            "<status>À venir</status>\n"
+            "<market>NASDAQ</market>\n"
+            "<country>USA</country>\n"
+            "<price_range>Prix ou fourchette (ex: $18.00 - $21.00 ou 'Non fixé')</price_range>\n"
+            "<valuation>Valorisation estimée (ex: $450M ou 'Inconnue')</valuation>\n"
+            "<amount_raised>Montant levé visé (ex: $50M ou 'Inconnu')</amount_raised>\n"
+            "</meta_data>"
+        )
         prompt_user = f"""Voici un extrait du document d'introduction en bourse de l'entreprise {company_name}.
 
-            CONSIGNE CRITIQUE : Tu dois IMPÉRATIVEMENT commencer ta réponse par ces deux lignes exactes elle correspondent à une note viabilité/solidité:
+            CONSIGNE CRITIQUE : Juste après la balise </meta_data> fermée, tu dois IMPÉRATIVEMENT commencer ton rapport par ces deux lignes exactes :
             [SCORE_CT: X/10]
             [SCORE_LT: Y/10]
             (Remplace X et Y par des nombres entiers entre 1 et 10, puis saute une ligne et commence ton rapport).
@@ -146,36 +157,45 @@ def run_ipo_agent():
                         print(rapport)
                         print("="*52 + "\n")
                         
-                        # --- DÉBUT DU PARSING DES NOTES ---
-                        # --- PARSING DES BALISES XML + INVERSION POUR LE RISQUE ---
+                        # --- ENTRACTION DES BALISES XML COMPORTANT LES COMPOSANTS ---
+                        def extract_tag(tag_name, text, default="-"):
+                            match = re.search(f"<{tag_name}>(.*?)</{tag_name}>", text, re.DOTALL)
+                            return match.group(1).strip() if match else default
+
+                        status = extract_tag("status", rapport, "À venir")
+                        market = extract_tag("market", rapport, exchange)
+                        country = extract_tag("country", rapport, "USA")
+                        price_range = extract_tag("price_range", rapport, "-")
+                        valuation = extract_tag("valuation", rapport, "-")
+                        amount_raised = extract_tag("amount_raised", rapport, "-")
+
+                        # --- PARSING DES NOTES & INVERSION POUR LE RISQUE ---
                         risk_short = None
                         risk_long = None
 
-                        # On cherche les chiffres cachés entre les balises <score_ct> et <score_lt>
-                        match_ct = re.search(r'(?:<score_ct>|\[SCORE_CT:\s*)(\d+)', rapport, re.IGNORECASE)
-                        match_lt = re.search(r'(?:<score_lt>|\[SCORE_LT:\s*)(\d+)', rapport, re.IGNORECASE)
+                        match_ct = re.search(r"\[SCORE_CT:\s*(\d+)/10\]", rapport, re.IGNORECASE)
+                        match_lt = re.search(r"\[SCORE_LT:\s*(\d+)/10\]", rapport, re.IGNORECASE)
 
                         if match_ct:
-                            # On convertit le score et on l'inverse pour obtenir le RISQUE (10 - score)
                             score_brut_ct = int(match_ct.group(1))
                             risk_short = 10 - score_brut_ct
                             
                         if match_lt:
-                            # Idem pour le long terme
                             score_brut_lt = int(match_lt.group(1))
                             risk_long = 10 - score_brut_lt
 
                         if risk_short is not None and risk_long is not None:
                             print(f"🎯 Risques calculés -> Risque CT: {risk_short}/10 (Score: {score_brut_ct}), Risque LT: {risk_long}/10 (Score: {score_brut_lt})")
                         else:
-                            print(f"⚠️ Notes partielles ou manquantes. Risque CT: {risk_short} | Risque LT: {risk_long}")
+                            print(f"⚠️ Notes partielles ou manquantes. Attribution de valeurs médianes de secours.")
+                            risk_short = risk_short if risk_short is not None else 5
+                            risk_long = risk_long if risk_long is not None else 5
 
-                        # Nettoyage cosmétique du rapport avant envoi en BDD
-                        clean_report = re.sub(r"</?score_ct>", "", rapport)
-                        clean_report = re.sub(r"</?score_lt>", "", clean_report).strip()
+                        # Nettoyage cosmétique complet : on efface tout le bloc <meta_data>...</meta_data> du texte final
+                        clean_report = re.sub(r"<meta_data>.*?</meta_data>", "", rapport, flags=re.DOTALL).strip()
                         # --- FIN DU PARSING ---
 
-                        # Enregistrement dans Supabase avec les vrais scores
+                        # Enregistrement dans Supabase avec les nouveaux arguments
                         save_analysis(
                             ticker=ticker,
                             company_name=name,
@@ -185,6 +205,12 @@ def run_ipo_agent():
                             risk_short=risk_short,
                             risk_long=risk_long,
                             ipo_date=date_listing,
+                            status=status,
+                            market=market,
+                            country=country,
+                            price_range=price_range,
+                            valuation=valuation,
+                            amount_raised=amount_raised
                         )
                     else:
                         print("Document S-1 introuvable pour le moment.")
