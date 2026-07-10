@@ -193,7 +193,7 @@
 // 1. INITIALISATION LIVE DE SUPABASE (Connexion directe à ton infrastructure)
 const SUPABASE_URL = "https://pothhxmdapkoctoygtcs.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBvdGhoeG1kYXBrb2N0b3lndGNzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1ODk3MzMsImV4cCI6MjA5OTE2NTczM30.m4hn6cFhwT38SUiCW8C8Ft5eNWI8IpBQ0OE8sCtHd28";
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // Configuration des correspondances UI pour les statuts réels renvoyés par ton main.py
 const STATUS_META = {
@@ -236,7 +236,7 @@ function riskColor(score){
 // Récupération des données depuis la table active 'ipo_analyses'
 async function fetchRadarData() {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from('ipo_analyses')
       .select('*')
       .order('analyzed_at', { ascending: false });
