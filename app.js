@@ -155,8 +155,9 @@ function renderIPOs() {
 async function fetchAndDisplayIPOs() {
     try {
         const { data: ipos, error } = await supabaseClient
-            .from('ipo_analyses')
+            .from('ipos_live')
             .select('*')
+            .neq('status_calcule', 'expiree')   // on masque les IPO trop anciennes directement à la source
             .order('analyzed_at', { ascending: false });
 
         if (error) throw error;
@@ -170,9 +171,9 @@ async function fetchAndDisplayIPOs() {
 
         // Mettre à jour les labels des onglets avec les vrais comptes
         if(tabs['All']) tabs['All'].textContent = `🌍 Toutes (${allIpos.length})`;
-        if(tabs['À venir']) tabs['À venir'].textContent = `📋 À venir (${allIpos.filter(i => i.status === 'À venir').length})`;
-        if(tabs['En cours de listing']) tabs['En cours de listing'].textContent = `⏳ En listing (${allIpos.filter(i => i.status === 'En cours de listing').length})`;
-        if(tabs['Récemment listée']) tabs['Récemment listée'].textContent = `✅ Cotées (${allIpos.filter(i => i.status === 'Récemment listée').length})`;
+        if(tabs['À venir']) tabs['À venir'].textContent = `📋 À venir (${allIpos.filter(i => i.status_calcule === 'a_venir').length})`;
+        if(tabs['En cours de listing']) tabs['En cours de listing'].textContent = `⏳ En listing (${allIpos.filter(i => i.status_calcule === 'en_listing').length})`;
+        if(tabs['Récemment listée']) tabs['Récemment listée'].textContent = `✅ Cotées (${allIpos.filter(i => i.status_calcule === 'cotee').length})`;
 
         renderIPOs();
 
