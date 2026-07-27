@@ -1,7 +1,6 @@
-// CONFIGURATION SUPABASE (À remplacer avec tes accès)
+// CONFIGURATION SUPABASE
 const SUPABASE_URL = "https://pothhxmdapkoctoygtcs.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBvdGhoeG1kYXBrb2N0b3lndGNzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1ODk3MzMsImV4cCI6MjA5OTE2NTczM30.m4hn6cFhwT38SUiCW8C8Ft5eNWI8IpBQ0OE8sCtHd28";
-
 
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -14,15 +13,15 @@ const ipoContainer = document.getElementById('ipoContainer');
 const totalIposEl = document.getElementById('totalIpos');
 const highRiskCountEl = document.getElementById('highRiskCount');
 
-// Boutons d'onglets
+// Boutons d'onglets — clé = valeur technique renvoyée par status_calcule
 const tabs = {
     'All': document.getElementById('tab-all'),
-    'À venir': document.getElementById('tab-avenir'),
-    'En cours de listing': document.getElementById('tab-cours'),
-    'Récemment listée': document.getElementById('tab-liste')
+    'a_venir': document.getElementById('tab-avenir'),
+    'en_listing': document.getElementById('tab-cours'),
+    'cotee': document.getElementById('tab-liste')
 };
 
-// Fonction pour filtrer visuellement les onglets
+// Fonction pour styliser visuellement l'onglet actif
 function updateTabStyles(activeFilter) {
     Object.keys(tabs).forEach(filter => {
         if (!tabs[filter]) return;
@@ -36,10 +35,10 @@ function updateTabStyles(activeFilter) {
 
 // Rendu des cartes sur l'écran
 function renderIPOs() {
-    // Filtrer les données selon l'onglet actif
-    const filteredIpos = currentFilter === 'All' 
-        ? allIpos 
-        : allIpos.filter(ipo => ipo.status === currentFilter);
+    // Filtrer les données selon l'onglet actif — basé sur status_calcule (dynamique, jamais figé)
+    const filteredIpos = currentFilter === 'All'
+        ? allIpos
+        : allIpos.filter(ipo => ipo.status_calcule === currentFilter);
 
     if (filteredIpos.length === 0) {
         ipoContainer.innerHTML = `<div class="text-center py-12 text-slate-500 col-span-full">Aucune IPO dans cette catégorie pour le moment.</div>`;
@@ -51,7 +50,7 @@ function renderIPOs() {
     filteredIpos.forEach((ipo, index) => {
         const card = document.createElement('div');
         card.className = "bg-slate-950 border border-slate-800 rounded-xl p-5 shadow-xl hover:border-slate-700 transition-all space-y-4 flex flex-col justify-between";
-        
+
         // Couleur des scores de risque
         const getRiskBadgeColor = (score) => {
             if (score >= 8) return 'bg-rose-500/10 text-rose-400 border border-rose-500/20';
@@ -59,11 +58,12 @@ function renderIPOs() {
             return 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
         };
 
-        // Badge de statut stylisé
+        // Badge de statut stylisé — lit désormais status_calcule
         const getStatusBadge = (status) => {
-            if (status === 'À venir') return '<span class="px-2 py-0.5 text-[10px] font-bold rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">📋 À VENIR</span>';
-            if (status === 'En cours de listing') return '<span class="px-2 py-0.5 text-[10px] font-bold rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">⏳ EN LISTING</span>';
-            return '<span class="px-2 py-0.5 text-[10px] font-bold rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">✅ COTÉE</span>';
+            if (status === 'a_venir') return '<span class="px-2 py-0.5 text-[10px] font-bold rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">📋 À VENIR</span>';
+            if (status === 'en_listing') return '<span class="px-2 py-0.5 text-[10px] font-bold rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">⏳ EN LISTING</span>';
+            if (status === 'cotee') return '<span class="px-2 py-0.5 text-[10px] font-bold rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">✅ COTÉE</span>';
+            return '<span class="px-2 py-0.5 text-[10px] font-bold rounded bg-slate-500/10 text-slate-400 border border-slate-500/20">— INCONNU</span>';
         };
 
         const dateOption = { year: 'numeric', month: 'short', day: 'numeric' };
@@ -83,7 +83,7 @@ function renderIPOs() {
                         </div>
                         <h3 class="text-xl font-bold text-slate-100 flex items-center gap-2">
                             ${ipo.ticker}
-                            ${getStatusBadge(ipo.status)}
+                            ${getStatusBadge(ipo.status_calcule)}
                         </h3>
                         <p class="text-xs text-slate-400 line-clamp-1 mt-0.5">${ipo.company_name}</p>
                     </div>
@@ -117,11 +117,11 @@ function renderIPOs() {
                         <div class="text-xs font-semibold text-blue-400 mt-0.5">${ipo.valuation || '-'}</div>
                     </div>
                 </div>
-                
+
                 <div id="${textId}" class="mt-4 text-sm text-slate-300 line-clamp-4 whitespace-pre-line border-t border-slate-900 pt-3 transition-all">
                     ${ipo.ai_report}
                 </div>
-                
+
                 <button id="${btnId}" class="mt-2 text-xs font-semibold text-emerald-400 hover:text-emerald-300 flex items-center gap-1 cursor-pointer">
                     Voir le rapport complet ⬇️
                 </button>
@@ -132,7 +132,7 @@ function renderIPOs() {
                 ${ipo.sec_filing_url ? `<a href="${ipo.sec_filing_url}" target="_blank" class="text-emerald-400 hover:underline">Prospectus ↗</a>` : ''}
             </div>
         `;
-        
+
         ipoContainer.appendChild(card);
 
         // Gestion de l'ouverture du texte
@@ -151,13 +151,13 @@ function renderIPOs() {
     });
 }
 
-// Récupération des données depuis Supabase
+// Récupération des données depuis Supabase (vue ipos_live = statut toujours à jour)
 async function fetchAndDisplayIPOs() {
     try {
         const { data: ipos, error } = await supabaseClient
             .from('ipos_live')
             .select('*')
-            .neq('status_calcule', 'expiree')   // on masque les IPO trop anciennes directement à la source
+            .neq('status_calcule', 'expiree')   // masque les IPO cotées depuis plus de 30 jours
             .order('analyzed_at', { ascending: false });
 
         if (error) throw error;
@@ -169,11 +169,11 @@ async function fetchAndDisplayIPOs() {
         const highRisk = allIpos.filter(i => (i.risk_score_short_term >= 9 || i.risk_score_long_term >= 9)).length;
         highRiskCountEl.textContent = highRisk;
 
-        // Mettre à jour les labels des onglets avec les vrais comptes
-        if(tabs['All']) tabs['All'].textContent = `🌍 Toutes (${allIpos.length})`;
-        if(tabs['À venir']) tabs['À venir'].textContent = `📋 À venir (${allIpos.filter(i => i.status_calcule === 'a_venir').length})`;
-        if(tabs['En cours de listing']) tabs['En cours de listing'].textContent = `⏳ En listing (${allIpos.filter(i => i.status_calcule === 'en_listing').length})`;
-        if(tabs['Récemment listée']) tabs['Récemment listée'].textContent = `✅ Cotées (${allIpos.filter(i => i.status_calcule === 'cotee').length})`;
+        // Mettre à jour les labels des onglets avec les vrais comptes, basés sur status_calcule
+        if (tabs['All']) tabs['All'].textContent = `🌍 Toutes (${allIpos.length})`;
+        if (tabs['a_venir']) tabs['a_venir'].textContent = `📋 À venir (${allIpos.filter(i => i.status_calcule === 'a_venir').length})`;
+        if (tabs['en_listing']) tabs['en_listing'].textContent = `⏳ En listing (${allIpos.filter(i => i.status_calcule === 'en_listing').length})`;
+        if (tabs['cotee']) tabs['cotee'].textContent = `✅ Cotées (${allIpos.filter(i => i.status_calcule === 'cotee').length})`;
 
         renderIPOs();
 
