@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ipo-agent-cache-v1';
+const CACHE_NAME = 'ipo-agent-cache-v2'; // change ce numéro à chaque déploiement majeur
 const ASSETS = [
   './index.html',
   './app.js',
@@ -32,7 +32,7 @@ self.addEventListener('activate', (e) => {
 // Stratégie Réseau en priorité, repli sur le cache si hors-ligne
 self.addEventListener('fetch', (e) => {
   e.respondWith(
-    fetch(e.request).catch(() => {
+    fetch(e.request, { cache: 'no-store' }).catch(() => {
       return caches.match(e.request);
     })
   );
