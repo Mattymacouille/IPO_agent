@@ -170,7 +170,7 @@ async function fetchAndDisplayIPOs() {
         highRiskCountEl.textContent = highRisk;
 
         // Mettre à jour les labels des onglets avec les vrais comptes, basés sur status_calcule
-        if (tabs['All']) tabs['All'].textContent = `🌍 Toutes (${allIpos.length})`;
+        if (tabs['All']) tabs['All'].textContent = `Caca prout (${allIpos.length})`;
         if (tabs['a_venir']) tabs['a_venir'].textContent = `📋 À venir (${allIpos.filter(i => i.status_calcule === 'a_venir').length})`;
         if (tabs['en_listing']) tabs['en_listing'].textContent = `⏳ En listing (${allIpos.filter(i => i.status_calcule === 'en_listing').length})`;
         if (tabs['cotee']) tabs['cotee'].textContent = `✅ Cotées (${allIpos.filter(i => i.status_calcule === 'cotee').length})`;
