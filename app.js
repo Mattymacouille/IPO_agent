@@ -154,7 +154,7 @@ function renderIPOs() {
 // Récupération des données depuis Supabase (vue ipos_live = statut toujours à jour)
 async function fetchAndDisplayIPOs() {
     try {
-        const { data: ipos, error } = await supabaseClient
+        const { data: ipo_analyses, error } = await supabaseClient
             .from('ipos_live')
             .select('*')
             .neq('status_calcule', 'expiree')   // masque les IPO cotées depuis plus de 30 jours
@@ -162,7 +162,7 @@ async function fetchAndDisplayIPOs() {
 
         if (error) throw error;
 
-        allIpos = ipos || [];
+        allIpos = ipo_analyses || [];
 
         // Mise à jour des compteurs globaux du Header
         totalIposEl.textContent = allIpos.length;
@@ -170,10 +170,10 @@ async function fetchAndDisplayIPOs() {
         highRiskCountEl.textContent = highRisk;
 
         // Mettre à jour les labels des onglets avec les vrais comptes, basés sur status_calcule
-        if (tabs['All']) tabs['All'].textContent = `Caca prout (${allIpos.length})`;
-        if (tabs['a_venir']) tabs['a_venir'].textContent = `📋 À venir (${allIpos.filter(i => i.status_calcule === 'a_venir').length})`;
-        if (tabs['en_listing']) tabs['en_listing'].textContent = `⏳ En listing (${allIpos.filter(i => i.status_calcule === 'en_listing').length})`;
-        if (tabs['cotee']) tabs['cotee'].textContent = `✅ Cotées (${allIpos.filter(i => i.status_calcule === 'cotee').length})`;
+        if (tabs['All']) tabs['All'].textContent = `Tous (${allIpos.length})`;
+        if (tabs['a_venir']) tabs['a_venir'].textContent = `À venir (${allIpos.filter(i => i.status_calcule === 'a_venir').length})`;
+        if (tabs['en_listing']) tabs['en_listing'].textContent = `En listing (${allIpos.filter(i => i.status_calcule === 'en_listing').length})`;
+        if (tabs['cotee']) tabs['cotee'].textContent = `Cotées (${allIpos.filter(i => i.status_calcule === 'cotee').length})`;
 
         renderIPOs();
 
