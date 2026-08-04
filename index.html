@@ -41,7 +41,6 @@
   .font-display{font-family:'Space Grotesk',system-ui,sans-serif}
   .font-mono{font-family:'JetBrains Mono',ui-monospace,monospace}
 
-  /* Ticker tape */
   .ticker-track{
     display:flex;
     width:max-content;
@@ -58,11 +57,8 @@
 
   .status-dot{
     display:inline-block;width:6px;height:6px;border-radius:999px;
-    box-shadow:0 0 0 3px currentColor / 20%;
   }
-  .pulse-dot{
-    position:relative;
-  }
+  .pulse-dot{position:relative}
   .pulse-dot::after{
     content:'';position:absolute;inset:-4px;border-radius:999px;
     background:currentColor;opacity:.35;
@@ -92,7 +88,6 @@
   ::-webkit-scrollbar-thumb{background:var(--line);border-radius:999px}
   .focus-ring:focus-visible{outline:2px solid var(--indigo);outline-offset:2px}
 
-  /* Accordion animation toggle */
   .report-content {
     max-height: 0;
     overflow: hidden;
@@ -106,7 +101,6 @@
 </head>
 <body class="min-h-screen">
 
-  <!-- HEADER -->
   <header class="border-b border-[var(--line)] bg-[#0A0F1D]/90 backdrop-blur sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-4 md:px-6 py-3 flex justify-between items-center gap-4">
       <div class="flex items-center gap-3">
@@ -124,7 +118,6 @@
       </button>
     </div>
 
-    <!-- TICKER TAPE -->
     <div class="border-t border-[var(--line)] overflow-hidden py-2 bg-[var(--surface)]/60">
       <div class="ticker-track font-mono text-xs" id="tickerTape">
         <span class="px-5 text-[var(--text-dim)]">Synchronisation du ruban en cours...</span>
@@ -134,7 +127,6 @@
 
   <main class="max-w-7xl mx-auto p-4 md:p-6 space-y-8">
 
-    <!-- STATS -->
     <section class="grid grid-cols-2 md:grid-cols-4 gap-3">
       <div class="card rounded-xl p-4 relative overflow-hidden">
         <div class="absolute top-0 left-0 w-full h-0.5 bg-[var(--text-dim)]/40"></div>
@@ -143,48 +135,46 @@
       </div>
       <div class="card rounded-xl p-4 relative overflow-hidden">
         <div class="absolute top-0 left-0 w-full h-0.5 bg-[var(--indigo)]"></div>
-        <p class="text-[10px] text-[var(--text-dim)] uppercase tracking-wider font-semibold">📋 À venir</p>
+        <p class="text-[10px] text-[var(--text-dim)] uppercase tracking-wider font-semibold">À venir</p>
         <p id="statAvenir" class="font-mono text-2xl md:text-3xl font-bold mt-1.5 text-[var(--indigo)]">00</p>
       </div>
       <div class="card rounded-xl p-4 relative overflow-hidden">
         <div class="absolute top-0 left-0 w-full h-0.5 bg-[var(--amber)]"></div>
-        <p class="text-[10px] text-[var(--text-dim)] uppercase tracking-wider font-semibold">⏳ En listing</p>
+        <p class="text-[10px] text-[var(--text-dim)] uppercase tracking-wider font-semibold">En listing</p>
         <p id="statListing" class="font-mono text-2xl md:text-3xl font-bold mt-1.5 text-[var(--amber)]">00</p>
       </div>
       <div class="card rounded-xl p-4 relative overflow-hidden">
         <div class="absolute top-0 left-0 w-full h-0.5 bg-[var(--rose)]"></div>
-        <p class="text-[10px] text-[var(--text-dim)] uppercase tracking-wider font-semibold">🔺 Risque max (8+/10)</p>
+        <p class="text-[10px] text-[var(--text-dim)] uppercase tracking-wider font-semibold">Risque max (8+/10)</p>
         <p id="statRisk" class="font-mono text-2xl md:text-3xl font-bold mt-1.5 text-[var(--rose)]">00</p>
       </div>
     </section>
 
-    <!-- FILTERS -->
     <section class="space-y-3">
       <div class="flex flex-wrap gap-2">
         <button data-tab="all" class="tab-btn px-4 py-2 text-xs md:text-sm font-display font-semibold rounded-lg bg-[var(--emerald)] text-[#06110D] cursor-pointer">
-          🌍 Toutes <span class="tab-count font-mono opacity-70">(0)</span>
+          Toutes <span class="tab-count font-mono opacity-70">(0)</span>
         </button>
-        <button data-tab="À venir" class="tab-btn px-4 py-2 text-xs md:text-sm font-display font-semibold rounded-lg bg-[var(--surface)] text-[var(--text-dim)] hover:text-[var(--text)] border border-[var(--line)] cursor-pointer">
-          📋 À venir <span class="tab-count font-mono opacity-70">(0)</span>
+        <button data-tab="a_venir" class="tab-btn px-4 py-2 text-xs md:text-sm font-display font-semibold rounded-lg bg-[var(--surface)] text-[var(--text-dim)] hover:text-[var(--text)] border border-[var(--line)] cursor-pointer">
+          <span class="status-dot" style="background:var(--indigo)"></span> À venir <span class="tab-count font-mono opacity-70">(0)</span>
         </button>
-        <button data-tab="En listing" class="tab-btn px-4 py-2 text-xs md:text-sm font-display font-semibold rounded-lg bg-[var(--surface)] text-[var(--text-dim)] hover:text-[var(--text)] border border-[var(--line)] cursor-pointer">
-          ⏳ En listing <span class="tab-count font-mono opacity-70">(0)</span>
+        <button data-tab="en_listing" class="tab-btn px-4 py-2 text-xs md:text-sm font-display font-semibold rounded-lg bg-[var(--surface)] text-[var(--text-dim)] hover:text-[var(--text)] border border-[var(--line)] cursor-pointer">
+          <span class="status-dot" style="background:var(--amber)"></span> En listing <span class="tab-count font-mono opacity-70">(0)</span>
         </button>
-        <button data-tab="Récemment listée" class="tab-btn px-4 py-2 text-xs md:text-sm font-display font-semibold rounded-lg bg-[var(--surface)] text-[var(--text-dim)] hover:text-[var(--text)] border border-[var(--line)] cursor-pointer">
-          ✅ Récemment listées <span class="tab-count font-mono opacity-70">(0)</span>
+        <button data-tab="cotee" class="tab-btn px-4 py-2 text-xs md:text-sm font-display font-semibold rounded-lg bg-[var(--surface)] text-[var(--text-dim)] hover:text-[var(--text)] border border-[var(--line)] cursor-pointer">
+          <span class="status-dot" style="background:var(--emerald)"></span> Récemment listées <span class="tab-count font-mono opacity-70">(0)</span>
         </button>
       </div>
 
       <div class="flex flex-wrap gap-2 items-center">
         <span class="text-[10px] text-[var(--text-dim)] uppercase tracking-wider font-semibold mr-1">Zone :</span>
         <button data-region="all" class="chip region-chip px-3 py-1.5 rounded-full text-xs border border-[var(--indigo)] bg-[var(--indigo-dim)] text-[var(--indigo)] cursor-pointer font-medium">Toutes</button>
-        <button data-region="USA" class="chip region-chip px-3 py-1.5 rounded-full text-xs border border-[var(--line)] text-[var(--text-dim)] hover:text-[var(--text)] cursor-pointer font-medium">🇺🇸 États-Unis</button>
-        <button data-region="Europe" class="chip region-chip px-3 py-1.5 rounded-full text-xs border border-[var(--line)] text-[var(--text-dim)] hover:text-[var(--text)] cursor-pointer font-medium">🇪🇺 Europe</button>
-        <button data-region="Hong Kong" class="chip region-chip px-3 py-1.5 rounded-full text-xs border border-[var(--line)] text-[var(--text-dim)] hover:text-[var(--text)] cursor-pointer font-medium">🇭🇰 Hong Kong</button>
+        <button data-region="USA" class="chip region-chip px-3 py-1.5 rounded-full text-xs border border-[var(--line)] text-[var(--text-dim)] hover:text-[var(--text)] cursor-pointer font-medium font-mono">US <span class="font-sans opacity-70">États-Unis</span></button>
+        <button data-region="Europe" class="chip region-chip px-3 py-1.5 rounded-full text-xs border border-[var(--line)] text-[var(--text-dim)] hover:text-[var(--text)] cursor-pointer font-medium font-mono">EU <span class="font-sans opacity-70">Europe</span></button>
+        <button data-region="Hong Kong" class="chip region-chip px-3 py-1.5 rounded-full text-xs border border-[var(--line)] text-[var(--text-dim)] hover:text-[var(--text)] cursor-pointer font-medium font-mono">HK <span class="font-sans opacity-70">Hong Kong</span></button>
       </div>
     </section>
 
-    <!-- LIST -->
     <section class="space-y-4">
       <div class="flex items-center justify-between">
         <h2 class="font-display text-sm font-semibold text-[var(--text-dim)] uppercase tracking-wider">Radar global</h2>
@@ -195,7 +185,7 @@
       </div>
       <div id="ipoContainer" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         <div id="loading" class="text-center py-16 text-[var(--text-dim)] col-span-full font-mono text-sm">
-          Connexion au cache de l'API Supabase — chargement...
+          Connexion à Supabase — chargement...
         </div>
       </div>
     </section>
@@ -206,15 +196,15 @@
   </main>
 
 <script>
-// 1. INITIALISATION LIVE DE SUPABASE
+// INITIALISATION SUPABASE
 const SUPABASE_URL = "https://pothhxmdapkoctoygtcs.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBvdGhoeG1kYXBrb2N0b3lndGNzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1ODk3MzMsImV4cCI6MjA5OTE2NTczM30.m4hn6cFhwT38SUiCW8C8Ft5eNWI8IpBQ0OE8sCtHd28";
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const STATUS_META = {
-  "À venir":            {label:"À venir",       color:"var(--indigo)",  bg:"var(--indigo-dim)",  icon:"📋"},
-  "En listing":         {label:"En listing",    color:"var(--amber)",   bg:"var(--amber-dim)",   icon:"⏳"},
-  "Récemment listée":   {label:"Cotée",         color:"var(--emerald)", bg:"var(--emerald-dim)", icon:"✅"},
+  a_venir:    {label:"À venir",            color:"var(--indigo)",  bg:"var(--indigo-dim)"},
+  en_listing: {label:"En listing",         color:"var(--amber)",   bg:"var(--amber-dim)"},
+  cotee:      {label:"Récemment listée",   color:"var(--emerald)", bg:"var(--emerald-dim)"},
 };
 
 let RAW_IPO_DATA = [];
@@ -222,26 +212,34 @@ let currentTab = "all";
 let currentRegion = "all";
 let currentSort = "date";
 
-function getCountryFlag(countryName) {
-  if (!countryName) return "🌐";
-  const c = countryName.toUpperCase();
-  if (c.includes("USA") || c.includes("ÉTATS") || c.includes("UNITED STATES")) return "🇺🇸";
-  if (c.includes("FRANCE") || c.includes("PARIS") || c.includes("EUROPE")) return "🇫🇷";
-  if (c.includes("HONG") || c.includes("HKEX")) return "🇭🇰";
-  if (c.includes("COREE") || c.includes("KOREA")) return "🇰🇷";
-  return "🌐";
-}
-
-function daysUntil(dateStr){
-  if (!dateStr) return "—";
+// ---------------------------------------------------------------
+// CALCUL DU STATUT CÔTÉ CLIENT — plus jamais figé en base.
+// Se recalcule à chaque chargement de page, à partir de la seule
+// vraie donnée fiable : ipo_date.
+// ---------------------------------------------------------------
+function computeStatus(ipoDateStr){
+  if (!ipoDateStr) return "a_venir";
   const today = new Date();
   today.setHours(0,0,0,0);
-  const target = new Date(dateStr);
-  const diff = Math.round((target - today) / 86400000);
-  return diff >= 0 ? `J-${diff}` : `J+${Math.abs(diff)}`;
+  const ipoDate = new Date(ipoDateStr);
+  const diffDays = Math.round((today - ipoDate) / 86400000);
+
+  if (diffDays < 0) return "a_venir";
+  if (diffDays <= 3) return "en_listing";
+  if (diffDays <= 30) return "cotee";
+  return "expiree";
 }
 
-// Nettoyage et formatage du texte brut de Claude en paragraphes HTML lisibles
+function getCountryFlag(countryName) {
+  if (!countryName) return "";
+  const c = countryName.toUpperCase();
+  if (c.includes("USA") || c.includes("ÉTATS") || c.includes("UNITED STATES")) return "US";
+  if (c.includes("FRANCE") || c.includes("PARIS") || c.includes("EUROPE")) return "EU";
+  if (c.includes("HONG") || c.includes("HKEX")) return "HK";
+  if (c.includes("COREE") || c.includes("KOREA")) return "KR";
+  return "";
+}
+
 function formatAIReport(text) {
   if (!text) return "Aucun rapport généré.";
   return text.split('\n').filter(p => p.trim() !== '').map(p => `<p class="mb-2 last:mb-0">${p}</p>`).join('');
@@ -262,8 +260,12 @@ async function fetchRadarData() {
 
     if (error) throw error;
 
-    RAW_IPO_DATA = data || [];
-    
+    // On calcule le statut ici, une fois pour toutes, à la lecture.
+    // On exclut directement les IPO cotées depuis plus de 30 jours.
+    RAW_IPO_DATA = (data || [])
+      .map(d => ({ ...d, status_calc: computeStatus(d.ipo_date) }))
+      .filter(d => d.status_calc !== "expiree");
+
     renderTicker();
     renderStats();
     applyFiltersAndRender();
@@ -271,7 +273,7 @@ async function fetchRadarData() {
     console.error("Erreur de récupération Supabase:", err);
     document.getElementById('ipoContainer').innerHTML = `
       <div class="col-span-full text-center py-16 text-[var(--rose)] font-mono text-xs">
-        ❌ Erreur de chargement : ${err.message || err}
+        Erreur de chargement : ${err.message || err}
       </div>`;
   }
 }
@@ -279,12 +281,12 @@ async function fetchRadarData() {
 function renderTicker(){
   if (RAW_IPO_DATA.length === 0) return;
   const items = [...RAW_IPO_DATA, ...RAW_IPO_DATA].map(d => {
-    const meta = STATUS_META[d.status] || {label: d.status, color:"var(--text-dim)"};
+    const meta = STATUS_META[d.status_calc] || {label: d.status_calc, color:"var(--text-dim)"};
     const flag = getCountryFlag(d.country);
     return `<div class="flex items-center gap-2 px-5 whitespace-nowrap">
       <span class="status-dot" style="background:${meta.color}"></span>
       <span class="font-semibold text-[var(--text)]">${d.ticker}</span>
-      <span class="text-[var(--text-dim)]">${flag} ${d.market || 'US'}</span>
+      <span class="text-[var(--text-dim)] font-mono">${flag} ${d.market || 'US'}</span>
       <span style="color:${meta.color}">${!d.price_range || d.price_range === '—' ? meta.label : d.price_range}</span>
     </div>`;
   }).join('<span class="text-[var(--line)]">/</span>');
@@ -293,19 +295,19 @@ function renderTicker(){
 
 function renderStats(){
   document.getElementById('statTotal').textContent = String(RAW_IPO_DATA.length).padStart(2,'0');
-  document.getElementById('statAvenir').textContent = String(RAW_IPO_DATA.filter(d=>d.status==='À venir').length).padStart(2,'0');
-  document.getElementById('statListing').textContent = String(RAW_IPO_DATA.filter(d=>d.status==='En listing').length).padStart(2,'0');
+  document.getElementById('statAvenir').textContent = String(RAW_IPO_DATA.filter(d=>d.status_calc==='a_venir').length).padStart(2,'0');
+  document.getElementById('statListing').textContent = String(RAW_IPO_DATA.filter(d=>d.status_calc==='en_listing').length).padStart(2,'0');
   document.getElementById('statRisk').textContent = String(RAW_IPO_DATA.filter(d=>d.risk_score_short_term >= 8 || d.risk_score_long_term >= 8).length).padStart(2,'0');
 
   document.querySelectorAll('.tab-btn').forEach(btn=>{
     const tab = btn.dataset.tab;
-    const count = tab==='all' ? RAW_IPO_DATA.length : RAW_IPO_DATA.filter(d=>d.status===tab).length;
+    const count = tab==='all' ? RAW_IPO_DATA.length : RAW_IPO_DATA.filter(d=>d.status_calc===tab).length;
     btn.querySelector('.tab-count').textContent = `(${count})`;
   });
 }
 
 function card(d){
-  const meta = STATUS_META[d.status] || {label: d.status, color:"var(--text-dim)", bg:"var(--surface-2)", icon:"📋"};
+  const meta = STATUS_META[d.status_calc] || {label: d.status_calc, color:"var(--text-dim)", bg:"var(--surface-2)"};
   const flag = getCountryFlag(d.country);
 
   return `
@@ -317,11 +319,11 @@ function card(d){
         </div>
         <div>
           <p class="font-mono font-bold text-sm leading-none">${d.ticker}</p>
-          <p class="text-[10px] text-[var(--text-dim)] mt-1">${flag} ${d.market || 'US'}</p>
+          <p class="text-[10px] text-[var(--text-dim)] mt-1 font-mono">${flag} ${d.market || 'US'}</p>
         </div>
       </div>
       <span class="text-[10px] font-semibold px-2 py-1 rounded-full whitespace-nowrap" style="background:${meta.bg};color:${meta.color}">
-        ${meta.icon} ${meta.label}
+        ${meta.label}
       </span>
     </div>
 
@@ -353,7 +355,7 @@ function card(d){
       <div class="risk-track h-1 rounded-full overflow-hidden">
         <div class="h-full rounded-full" style="width:${(d.risk_score_short_term || 5)*10}%;background:${riskColor(d.risk_score_short_term)}"></div>
       </div>
-      
+
       <div class="flex justify-between items-center">
         <p class="text-[9px] text-[var(--text-dim)] uppercase tracking-wide">Risque Long Terme</p>
         <p class="font-mono text-xs font-bold" style="color:${riskColor(d.risk_score_long_term)}">${d.risk_score_long_term || 5}/10</p>
@@ -363,7 +365,6 @@ function card(d){
       </div>
     </div>
 
-    <!-- BOUTON DE DEPLIEMENT DU RAPPORT RAPIDE -->
     <div class="pt-1">
       <button onclick="toggleReport(this)" class="w-full text-center font-display text-[11px] font-semibold tracking-wide uppercase py-2 rounded-lg bg-[var(--surface-2)] hover:bg-[var(--line)] text-[var(--indigo)] transition-all cursor-pointer">
         Lire le rapport complet
@@ -384,7 +385,6 @@ function card(d){
   </article>`;
 }
 
-// Fonction globale d'animation d'ouverture/fermeture du rapport
 window.toggleReport = function(btn) {
   const content = btn.nextElementSibling;
   content.classList.toggle('open');
@@ -399,9 +399,9 @@ window.toggleReport = function(btn) {
 
 function applyFiltersAndRender(){
   let data = [...RAW_IPO_DATA];
-  
-  if(currentTab !== 'all') data = data.filter(d => d.status === currentTab);
-  
+
+  if(currentTab !== 'all') data = data.filter(d => d.status_calc === currentTab);
+
   if(currentRegion !== 'all') {
     data = data.filter(d => {
       const country = d.country ? d.country.toUpperCase() : '';
