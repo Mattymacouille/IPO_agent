@@ -251,6 +251,18 @@ function riskColor(score){
   return "var(--emerald)";
 }
 
+// Rendu d'une liste à puces colorée (points forts / points faibles / red flags)
+function renderPointList(items, dotColor){
+  if (!items || items.length === 0) return "";
+  return `<ul class="space-y-1.5">
+    ${items.map(pt => `
+      <li class="flex items-start gap-2 text-[11px] text-[var(--text-dim)] leading-snug">
+        <span class="mt-1 flex-shrink-0 w-1.5 h-1.5 rounded-full" style="background:${dotColor}"></span>
+        <span>${pt}</span>
+      </li>`).join('')}
+  </ul>`;
+}
+
 async function fetchRadarData() {
   try {
     const { data, error } = await supabaseClient
@@ -365,6 +377,54 @@ function card(d){
       </div>
     </div>
 
+    ${d.has_going_concern_doubt ? `
+    <div class="flex items-center gap-2 px-3 py-2 rounded-lg" style="background:var(--rose-dim);border:1px solid var(--rose)">
+      <span class="status-dot" style="background:var(--rose)"></span>
+      <span class="text-[10px] font-bold uppercase tracking-wide" style="color:var(--rose)">Doute sur la continuité d'exploitation (going concern)</span>
+    </div>` : ''}
+
+    ${d.business_model ? `
+    <!-- AFFICHAGE STRUCTURÉ : disponible pour les analyses passées par la grille détaillée -->
+    <div class="space-y-3">
+      <div>
+        <p class="text-[9px] text-[var(--text-dim)] uppercase tracking-wide font-semibold mb-1">Business model</p>
+        <p class="text-[11px] text-[var(--text-dim)] leading-snug">${d.business_model}</p>
+      </div>
+
+      ${d.strengths && d.strengths.length ? `
+      <div>
+        <p class="text-[9px] uppercase tracking-wide font-semibold mb-1" style="color:var(--emerald)">Points forts</p>
+        ${renderPointList(d.strengths, "var(--emerald)")}
+      </div>` : ''}
+
+      ${d.weaknesses && d.weaknesses.length ? `
+      <div>
+        <p class="text-[9px] uppercase tracking-wide font-semibold mb-1" style="color:var(--amber)">Points faibles</p>
+        ${renderPointList(d.weaknesses, "var(--amber)")}
+      </div>` : ''}
+
+      ${d.red_flags && d.red_flags.length ? `
+      <div>
+        <p class="text-[9px] uppercase tracking-wide font-semibold mb-1" style="color:var(--rose)">Signaux d'alerte</p>
+        ${renderPointList(d.red_flags, "var(--rose)")}
+      </div>` : ''}
+
+      <button onclick="toggleReport(this)" class="w-full text-center font-display text-[11px] font-semibold tracking-wide uppercase py-2 rounded-lg bg-[var(--surface-2)] hover:bg-[var(--line)] text-[var(--indigo)] transition-all cursor-pointer">
+        Voir l'analyse détaillée
+      </button>
+      <div class="report-content font-mono text-[11px] text-[var(--text-dim)] leading-relaxed bg-[#0E1524] rounded-xl transition-all border border-transparent">
+        <div class="p-3 max-h-72 overflow-y-auto space-y-3">
+          <div><span class="text-[var(--text)] font-semibold">Utilisation des fonds : </span>${d.use_of_proceeds || 'Non communiqué'}</div>
+          <div><span class="text-[var(--text)] font-semibold">Lock-up : </span>${d.lockup_period || 'Non communiqué'}</div>
+          <div><span class="text-[var(--text)] font-semibold">Gouvernance : </span>${d.governance_notes || 'Non communiqué'}</div>
+          <div><span class="text-[var(--text)] font-semibold">Moat concurrentiel : </span>${d.competitive_moat || 'Non communiqué'}</div>
+          <div><span class="text-[var(--text)] font-semibold">Valorisation comparée : </span>${d.comparable_valuation || 'Non évaluable'}</div>
+          <div><span class="text-[var(--text)] font-semibold">Trésorerie / runway : </span>${d.burn_rate_runway || 'Non communiqué'}</div>
+        </div>
+      </div>
+    </div>
+    ` : `
+    <!-- FALLBACK : anciennes analyses non repassées par la grille structurée -->
     <div class="pt-1">
       <button onclick="toggleReport(this)" class="w-full text-center font-display text-[11px] font-semibold tracking-wide uppercase py-2 rounded-lg bg-[var(--surface-2)] hover:bg-[var(--line)] text-[var(--indigo)] transition-all cursor-pointer">
         Lire le rapport complet
@@ -375,6 +435,7 @@ function card(d){
         </div>
       </div>
     </div>
+    `}
 
     <div class="flex justify-between items-center pt-2 mt-auto border-t border-[var(--line)]/40">
       <span class="text-[10px] text-[var(--text-dim)]">${d.ipo_date ? new Date(d.ipo_date).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'}) : 'Date à fixer'}</span>

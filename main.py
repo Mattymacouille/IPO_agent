@@ -151,9 +151,8 @@ Texte source :
 """
 
         message = anthropic_client.messages.create(
-            model="claude-haiku-4-5-20251001",
-            max_tokens=2500,
-            temperature=0.1,
+            model="claude-sonnet-5",
+            max_tokens=6000,
             system=prompt_system,
             messages=[{"role": "user", "content": prompt_user}],
         )
