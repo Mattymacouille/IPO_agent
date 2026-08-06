@@ -1,0 +1,29 @@
+name: Track IPO Price Performance Daily
+
+on:
+  workflow_dispatch: # Déclenché en externe par cron-job.org
+
+jobs:
+  track-performance:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout du code
+      uses: actions/checkout@v4
+
+    - name: Installer Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Installer les dépendances
+      run: |
+        python -m pip install --upgrade pip
+        pip install requests python-dotenv supabase postgrest
+
+    - name: Capturer les prix du jour
+      env:
+        FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY }}
+        SUPABASE_URL: "https://pothhxmdapkoctoygtcs.supabase.co"
+        SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+      run: python track_performance.py
