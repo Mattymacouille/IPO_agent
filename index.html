@@ -208,6 +208,7 @@ const STATUS_META = {
 };
 
 let RAW_IPO_DATA = [];
+let PERF_MAP = {};
 let currentTab = "all";
 let currentRegion = "all";
 let currentSort = "date";
@@ -272,6 +273,10 @@ async function fetchRadarData() {
 
     if (error) throw error;
 
+    const { data: perf } = await supabaseClient.from('ipo_performance').select('*');
+    PERF_MAP = {};
+    (perf || []).forEach(p => { PERF_MAP[p.ticker] = p; });
+
     // On calcule le statut ici, une fois pour toutes, à la lecture.
     // On exclut directement les IPO cotées depuis plus de 30 jours.
     RAW_IPO_DATA = (data || [])
@@ -321,6 +326,11 @@ function renderStats(){
 function card(d){
   const meta = STATUS_META[d.status_calc] || {label: d.status_calc, color:"var(--text-dim)", bg:"var(--surface-2)"};
   const flag = getCountryFlag(d.country);
+  const perf = PERF_MAP[d.ticker];
+  const perfPct = perf ? (perf.perf_actuelle_pct ?? null) : null;
+  const perfBadge = perfPct !== null
+    ? `<span class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded" style="color:${perfPct >= 0 ? 'var(--emerald)' : 'var(--rose)'};background:${perfPct >= 0 ? 'var(--emerald-dim)' : 'var(--rose-dim)'}">${perfPct >= 0 ? '+' : ''}${perfPct}% depuis l'IPO</span>`
+    : `<span class="text-[10px] font-mono text-[var(--text-dim)]">Perf. en attente</span>`;
 
   return `
   <article class="card rounded-2xl p-4 flex flex-col gap-3">
@@ -334,9 +344,12 @@ function card(d){
           <p class="text-[10px] text-[var(--text-dim)] mt-1 font-mono">${flag} ${d.market || 'US'}</p>
         </div>
       </div>
-      <span class="text-[10px] font-semibold px-2 py-1 rounded-full whitespace-nowrap" style="background:${meta.bg};color:${meta.color}">
-        ${meta.label}
-      </span>
+      <div class="flex flex-col items-end gap-1">
+        <span class="text-[10px] font-semibold px-2 py-1 rounded-full whitespace-nowrap" style="background:${meta.bg};color:${meta.color}">
+          ${meta.label}
+        </span>
+        ${perfBadge}
+      </div>
     </div>
 
     <div>
